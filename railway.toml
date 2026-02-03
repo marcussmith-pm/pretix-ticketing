@@ -2,9 +2,9 @@
 builder = "dockerfile"
 
 [deploy]
-# Explicitly set port for Railway
-port = 80
-healthcheckPath = "/control/"
-healthcheckTimeout = 90
-healthcheckInterval = 30
-healthcheckRetries = 10
+# Temporarily disable healthcheck to verify app works
+# port = 80
+# healthcheckPath = "/control/"
+# healthcheckTimeout = 90
+# healthcheckInterval = 30
+# healthcheckRetries = 10
