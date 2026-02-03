@@ -43,6 +43,7 @@ ENV LC_ALL=C.UTF-8 \
 COPY deployment/docker/pretix.bash /usr/local/bin/pretix
 COPY deployment/docker/docker-entrypoint.sh /docker-entrypoint.sh
 COPY deployment/docker/init-admin.sh /usr/local/bin/init-admin
+COPY create_admin.py /pretix/src/create_admin.py
 RUN chmod +x /docker-entrypoint.sh /usr/local/bin/init-admin
 COPY deployment/docker/supervisord /etc/supervisord
 COPY deployment/docker/supervisord.all.conf /etc/supervisord.all.conf
