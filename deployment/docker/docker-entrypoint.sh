@@ -6,8 +6,8 @@ export DJANGO_SETTINGS_MODULE=production_settings
 export DATA_DIR=/data/
 export HOME=/pretix
 export AUTOMIGRATE=${AUTOMIGRATE:-yes}
-NUM_WORKERS_DEFAULT=$((2 * $(nproc)))
-export NUM_WORKERS=${NUM_WORKERS:-$NUM_WORKERS_DEFAULT}
+# Use environment variable or default to 2 (don't auto-calculate based on CPU count)
+export NUM_WORKERS=${NUM_WORKERS:-2}
 
 # Create data directories
 mkdir -p /data/logs /data/media /data/cache /data/profiles 2>/dev/null || true

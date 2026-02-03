@@ -37,7 +37,8 @@ RUN apt-get update && \
 
 
 ENV LC_ALL=C.UTF-8 \
-    DJANGO_SETTINGS_MODULE=production_settings
+    DJANGO_SETTINGS_MODULE=production_settings \
+    NUM_WORKERS=2
 
 COPY deployment/docker/pretix.bash /usr/local/bin/pretix
 COPY deployment/docker/docker-entrypoint.sh /docker-entrypoint.sh
