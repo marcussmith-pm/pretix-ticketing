@@ -2,7 +2,7 @@
 builder = "dockerfile"
 
 [deploy]
-healthcheckPath = "/"
-healthcheckTimeout = 300
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10
+# Pretix's health check - using /control/ which is the admin panel path
+healthcheckPath = "/control/"
+healthcheckTimeout = 30
+healthcheckInterval = 15
