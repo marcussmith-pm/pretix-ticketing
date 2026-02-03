@@ -75,6 +75,9 @@ RUN chmod +x /usr/local/bin/pretix && \
     chown -R pretixuser:pretixuser /pretix /data /etc/pretix &&  \
     sudo -u pretixuser make production
 
+# Set working directory for Railway run commands
+WORKDIR /pretix/src
+
 EXPOSE 80
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["all"]
