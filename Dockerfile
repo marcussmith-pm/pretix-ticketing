@@ -64,12 +64,14 @@ RUN chmod +x /usr/local/bin/pretix && \
     rm /etc/nginx/sites-enabled/default && \
     cd /pretix/src && \
     rm -f pretix.cfg &&  \
-    mkdir -p data && \
-    chown -R pretixuser:pretixuser /pretix /data data &&  \
+    mkdir -p /data && \
+    mkdir -p /data/logs && \
+    mkdir -p /data/media && \
+    mkdir -p /etc/pretix && \
+    chown -R pretixuser:pretixuser /pretix /data /etc/pretix &&  \
     sudo -u pretixuser make production
 
 USER pretixuser
-VOLUME ["/etc/pretix", "/data"]
 EXPOSE 80
 ENTRYPOINT ["pretix"]
 CMD ["all"]
