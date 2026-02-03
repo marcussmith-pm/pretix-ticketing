@@ -19,6 +19,11 @@ if [ "$AUTOMIGRATE" != "skip" ]; then
   python3 -m pretix migrate --noinput
 fi
 
+# Create initial admin user if needed
+if [ "$AUTOMIGRATE" != "skip" ]; then
+  /usr/local/bin/init-admin
+fi
+
 # Handle different commands
 if [ "$1" = "all" ]; then
     # Run supervisord directly (needs root to start nginx)
