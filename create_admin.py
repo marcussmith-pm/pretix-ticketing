@@ -21,22 +21,20 @@ django.setup()
 from django.contrib.auth import get_user_model
 
 # Get environment variables or use defaults
-username = os.environ.get('ADMIN_USERNAME', 'admin')
 email = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
 password = os.environ.get('ADMIN_PASSWORD', 'admin123')
 
 User = get_user_model()
 
-# Check if user already exists
-if User.objects.filter(username=username).exists():
-    print(f"User '{username}' already exists")
+# Check if user already exists (by email)
+if User.objects.filter(email=email).exists():
+    print(f"User with email '{email}' already exists")
 else:
-    # Create superuser
+    # Create superuser using pretix's custom user manager
+    # pretix uses email as the username
     user = User.objects.create_superuser(
-        username=username,
         email=email,
         password=password
     )
-    print(f"Created superuser: {username}")
-    print(f"Email: {email}")
+    print(f"Created superuser: {email}")
     print(f"Password: {password}")
