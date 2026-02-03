@@ -40,6 +40,8 @@ ENV LC_ALL=C.UTF-8 \
     DJANGO_SETTINGS_MODULE=production_settings
 
 COPY deployment/docker/pretix.bash /usr/local/bin/pretix
+COPY deployment/docker/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 COPY deployment/docker/supervisord /etc/supervisord
 COPY deployment/docker/supervisord.all.conf /etc/supervisord.all.conf
 COPY deployment/docker/supervisord.web.conf /etc/supervisord.web.conf
@@ -71,7 +73,6 @@ RUN chmod +x /usr/local/bin/pretix && \
     chown -R pretixuser:pretixuser /pretix /data /etc/pretix &&  \
     sudo -u pretixuser make production
 
-USER pretixuser
 EXPOSE 80
-ENTRYPOINT ["pretix"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["all"]

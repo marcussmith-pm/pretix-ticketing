@@ -8,12 +8,8 @@ AUTOMIGRATE=${AUTOMIGRATE:-yes}
 NUM_WORKERS_DEFAULT=$((2 * $(nproc)))
 export NUM_WORKERS=${NUM_WORKERS:-$NUM_WORKERS_DEFAULT}
 
-if [ ! -d /data/logs ]; then
-    mkdir /data/logs;
-fi
-if [ ! -d /data/media ]; then
-    mkdir /data/media;
-fi
+# Create data directories with proper permissions
+mkdir -p /data/logs /data/media /data/cache /data/profiles 2>/dev/null || true
 
 if [ "$1" == "cron" ]; then
     exec python3 -m pretix runperiodic
