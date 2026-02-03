@@ -6,11 +6,13 @@ Run this in Railway console with: python create_admin.py
 
 import os
 import sys
-import django
 
-# Setup Django
+# Setup Django - use pretix module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'production_settings')
 sys.path.insert(0, '/pretix/src')
+
+# Import pretix to get Django
+from pretix import django
 django.setup()
 
 from django.contrib.auth import get_user_model
