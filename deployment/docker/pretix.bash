@@ -39,7 +39,7 @@ fi
 
 if [ "$1" == "taskworker" ]; then
     shift
-    exec celery -A pretix.celery_app worker -l info "$@"
+    exec celery -A pretix.celery_app worker -l info -c $NUM_WORKERS "$@"
 fi
 
 if [ "$1" == "upgrade" ]; then
