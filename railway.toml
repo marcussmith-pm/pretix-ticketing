@@ -2,7 +2,9 @@
 builder = "dockerfile"
 
 [deploy]
-# Pretix's health check - using /control/ which is the admin panel path
+# Explicitly set port for Railway
+port = 80
 healthcheckPath = "/control/"
-healthcheckTimeout = 30
-healthcheckInterval = 15
+healthcheckTimeout = 90
+healthcheckInterval = 30
+healthcheckRetries = 10
