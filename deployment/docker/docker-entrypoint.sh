@@ -46,7 +46,8 @@ fi
 
 if [ "$1" = "taskworker" ]; then
     shift
-    exec celery -A pretix.celery_app worker -l info --concurrency=$NUM_WORKERS "$@"
+    # Set concurrency to 2 (fixed for Railway)
+    exec celery -A pretix.celery_app worker -l info -c 2 "$@"
 fi
 
 if [ "$1" = "upgrade" ]; then
