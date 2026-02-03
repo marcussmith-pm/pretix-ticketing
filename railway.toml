@@ -5,6 +5,6 @@ builder = "dockerfile"
 # Temporarily disable healthcheck to verify app works
 # port = 80
 # healthcheckPath = "/control/"
-# healthcheckTimeout = 90
+# healthcheckTimeout = 60
 # healthcheckInterval = 30
 # healthcheckRetries = 10
