@@ -54,7 +54,7 @@ class Poli(BasePaymentProvider):
     """
 
     identifier = 'poli'
-    verbose_name = _('POLi Pay')
+    verbose_name = _('POLi')
     payment_form_fields = OrderedDict([])
 
     def __init__(self, event: Event):
