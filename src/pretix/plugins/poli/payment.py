@@ -118,9 +118,9 @@ class Poli(BasePaymentProvider):
         ])
 
         d = OrderedDict(
-            list(fields.items()) + list(super().settings_form_fields.items())
+            list(super().settings_form_fields.items()) + list(fields.items())
         )
-        d.move_to_end('_enabled', False)
+        d.move_to_end('_enabled', last=False)
         return d
 
     def settings_form_clean(self, cleaned_data):
