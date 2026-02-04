@@ -34,7 +34,6 @@ from django.views.generic import View
 
 from pretix.base.models import Order, OrderPayment
 from pretix.base.payment import PaymentException
-from pretix.multidomain.urlreverse import build_global_uri
 
 logger = logging.getLogger('pretix.plugins.poli')
 
@@ -228,35 +227,3 @@ class PoliWebhookView(View):
         except Exception as e:
             logger.exception(f'Error processing POLi webhook: {str(e)}')
             return HttpResponse('OK', status=202)  # Accept but don't process on error
-
-
-def build_payment_uri(request, order, payment):
-    """
-    Build the redirect URI for POLi payment.
-    """
-    return build_global_uri(
-        request.event.organizer.slug,
-        request.event.slug,
-        'plugins:poli:return',
-        kwargs={
-            'order': order.code,
-            'payment': payment.pk,
-            'hash': order.secret
-        }
-    )
-
-
-def build_cancel_uri(request, order, payment):
-    """
-    Build the cancel URI for POLi payment.
-    """
-    return build_global_uri(
-        request.event.organizer.slug,
-        request.event.slug,
-        'plugins:poli:cancel',
-        kwargs={
-            'order': order.code,
-            'payment': payment.pk,
-            'hash': order.secret
-        }
-    )
