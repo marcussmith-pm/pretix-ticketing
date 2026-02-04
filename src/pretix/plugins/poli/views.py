@@ -21,7 +21,6 @@
 import logging
 from urllib.parse import urlencode
 
-import django_htmx as htmx
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
