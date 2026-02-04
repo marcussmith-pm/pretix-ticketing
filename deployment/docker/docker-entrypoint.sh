@@ -55,6 +55,12 @@ if [ "$1" = "taskworker" ]; then
     exec celery -A pretix.celery_app worker -l info -c 2 "$@"
 fi
 
+if [ "$1" = "beat" ]; then
+    shift
+    # Celery beat scheduler for periodic tasks
+    exec celery -A pretix.celery_app beat -l info "$@"
+fi
+
 if [ "$1" = "upgrade" ]; then
     exec python3 -m pretix updateassets
 fi
