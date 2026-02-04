@@ -2,7 +2,9 @@
 builder = "dockerfile"
 
 [deploy]
-healthcheckPath = "/control/"
-healthcheckTimeout = 60
-healthcheckInterval = 30
-healthcheckRetries = 10
+# Healthcheck disabled - /control/ requires authentication
+# Uncomment to enable healthchecks on a public endpoint
+# healthcheckPath = "/control/"
+# healthcheckTimeout = 60
+# healthcheckInterval = 30
+# healthcheckRetries = 10
