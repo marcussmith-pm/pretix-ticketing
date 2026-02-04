@@ -58,12 +58,6 @@ def get_powered_by(request, safelink=True):
             )
         }
 
-    if d.get('base_license') == 'agpl':
-        msg += ' (<a href="{}" target="_blank" rel="noopener">{}</a>)'.format(
-            request.build_absolute_uri(reverse('source')),
-            gettext('source code')
-        )
-
     return mark_safe(msg)
 
 
