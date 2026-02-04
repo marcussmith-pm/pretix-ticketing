@@ -187,7 +187,14 @@ class Poli(BasePaymentProvider):
         temp_ref = f"TEMP-{uuid.uuid4().hex[:12].upper()}"
         logger.info(f'[POLi DEBUG] Generated temp_ref: {temp_ref}')
 
-        amount = str(total)
+        # Extract the actual amount from the total dictionary
+        if isinstance(total, dict):
+            amount = str(total.get('total', Decimal('0.00')))
+            logger.info(f'[POLi DEBUG] Extracted amount from dict: {amount}')
+        else:
+            amount = str(total)
+            logger.info(f'[POLi DEBUG] Amount (direct): {amount}')
+
         currency_code = self.event.currency
         merchant_homepage_url = build_absolute_uri(self.event, 'presale:event.index')
         # We'll use the return URL that works without order/payment context
