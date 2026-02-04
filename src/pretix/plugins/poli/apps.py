@@ -35,6 +35,7 @@ class PluginConfig(AppConfig):
         visible = True
         version = '1.0.0'
         category = 'PAYMENT'
+        picture = 'pretixplugins/poli/poli_logo.png'
 
     def ready(self):
         from . import signals  # noqa
