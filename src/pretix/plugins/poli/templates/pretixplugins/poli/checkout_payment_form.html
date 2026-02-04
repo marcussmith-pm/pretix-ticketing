@@ -30,3 +30,33 @@
         </div>
     </div>
 </div>
+
+<script>
+console.log('[POLi DEBUG] Payment form loaded');
+
+// Log when the form is submitted
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('[POLi DEBUG] DOM ready');
+
+    // Find the continue button
+    var continueButtons = document.querySelectorAll('button[type="submit"], .btn-primary');
+    console.log('[POLi DEBUG] Found submit buttons:', continueButtons.length);
+
+    continueButtons.forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            console.log('[POLi DEBUG] Continue button clicked');
+            var selectedPayment = document.querySelector('input[name="payment"][value="poli"], input[name="payment"][value="poli_pay"]');
+            console.log('[POLi DEBUG] Selected payment method:', selectedPayment ? 'POLi' : 'Not POLi');
+            console.log('[POLi DEBUG] Form action:', document.querySelector('form').action);
+        });
+    });
+
+    // Log payment method selection changes
+    var paymentInputs = document.querySelectorAll('input[name="payment"]');
+    paymentInputs.forEach(function(input) {
+        input.addEventListener('change', function() {
+            console.log('[POLi DEBUG] Payment method changed to:', this.value);
+        });
+    });
+});
+</script>

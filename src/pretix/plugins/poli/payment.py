@@ -180,9 +180,12 @@ class Poli(BasePaymentProvider):
         This is called during checkout to start the payment flow.
         The OrderPayment doesn't exist yet, so we use the session.
         """
+        logger.info(f'[POLi DEBUG] checkout_prepare called with total: {total}, currency: {self.event.currency}')
+
         # Generate a temporary reference for the transaction
         # We'll update this with the actual order code when the payment is created
         temp_ref = f"TEMP-{uuid.uuid4().hex[:12].upper()}"
+        logger.info(f'[POLi DEBUG] Generated temp_ref: {temp_ref}')
 
         amount = str(total)
         currency_code = self.event.currency
@@ -195,6 +198,7 @@ class Poli(BasePaymentProvider):
         notification_url = build_absolute_uri(self.event, 'plugins:poli:webhook')
 
         timeout = self.settings.get('timeout', 900)
+        logger.info(f'[POLi DEBUG] Timeout: {timeout}, Endpoint: {self.settings.get("endpoint", "production")}')
 
         payload = {
             'Amount': amount,
@@ -214,6 +218,8 @@ class Poli(BasePaymentProvider):
         authentication_code = self.settings.get('authentication_code')
         merchant_code = self.settings.get('merchant_code')
 
+        logger.info(f'[POLi DEBUG] Merchant code: {merchant_code}, Auth code set: {bool(authentication_code)}')
+
         # Create Basic Auth header
         auth_string = f"{merchant_code}:{authentication_code}"
         auth_header = f"Basic {__import__('base64').b64encode(auth_string.encode()).decode()}"
@@ -226,6 +232,9 @@ class Poli(BasePaymentProvider):
         base_url = self.get_base_url()
         api_url = f"{base_url}/api/v2/Transaction/Initiate"
 
+        logger.info(f'[POLi DEBUG] Calling POLi API: {api_url}')
+        logger.info(f'[POLi DEBUG] Payload: {json.dumps(payload, indent=2)}')
+
         try:
             response = requests.post(
                 api_url,
@@ -233,6 +242,9 @@ class Poli(BasePaymentProvider):
                 headers=headers,
                 timeout=30
             )
+            logger.info(f'[POLi DEBUG] Response status: {response.status_code}')
+            logger.info(f'[POLi DEBUG] Response body: {response.text[:500]}')
+
             response.raise_for_status()
             data = response.json()
 
@@ -241,15 +253,18 @@ class Poli(BasePaymentProvider):
                 request.session['payment_poli_token'] = data.get('TransactionRefNo')
                 request.session['payment_poli_navigate_url'] = data.get('NavigateURL')
                 request.session['payment_poli_temp_ref'] = temp_ref
+                logger.info(f'[POLi DEBUG] Transaction initiated successfully, NavigateURL: {data.get("NavigateURL")}')
                 return data.get('NavigateURL')
             else:
                 error_code = data.get('ErrorCode', 'Unknown')
                 error_message = data.get('ErrorMessage', 'Unknown error')
-                logger.error(f'POLi InitiateTransaction failed: {error_code} - {error_message}')
+                logger.error(f'[POLi DEBUG] InitiateTransaction failed: {error_code} - {error_message}')
+                logger.error(f'[POLi DEBUG] Full response: {data}')
                 return None
 
         except requests.RequestException as e:
-            logger.exception(f'POLi API request failed: {str(e)}')
+            logger.error(f'[POLi DEBUG] API request failed: {str(e)}')
+            logger.exception(f'[POLi DEBUG] Full exception traceback:')
             return None
 
     def checkout_confirm_render(self, request):
