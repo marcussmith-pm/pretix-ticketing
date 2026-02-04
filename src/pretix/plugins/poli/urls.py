@@ -9,7 +9,7 @@
 # ADDITIONAL TERMS APPLY: Pursuant to Section 7 of the GNU Affero General Public License, additional terms are
 # applicable granting you additional permissions and placing additional restrictions on your usage of this software.
 # Please refer to the pretix LICENSE file to obtain the full terms applicable to this work. If you did not receive
-# this file, see <https://pretix.eu/about/en/license>.
+# this file, see <https://pretix.eu/about/en/license/>.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 # warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
@@ -18,14 +18,14 @@
 # You should have received a copy of the GNU Affero General Public License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-from django.urls import path
+from django.urls import include, re_path
 
 from pretix.plugins.poli import views
 
-app_name = 'plugins:poli'
-
-urlpatterns = [
-    path('return/<order>/<str:payment>/<hash>/', views.PoliReturnView.as_view(), name='return'),
-    path('cancel/<order>/<str:payment>/<hash>/', views.PoliCancelView.as_view(), name='cancel'),
-    path('webhook', views.PoliWebhookView.as_view(), name='webhook'),
+event_patterns = [
+    re_path(r'^poli/', include([
+        re_path(r'^return/(?P<order>[^/]+)/(?P<payment>[^/]+)/(?P<hash>[^/]+)/$', views.PoliReturnView.as_view(), name='return'),
+        re_path(r'^cancel/(?P<order>[^/]+)/(?P<payment>[^/]+)/(?P<hash>[^/]+)/$', views.PoliCancelView.as_view(), name='cancel'),
+        re_path(r'^webhook$', views.PoliWebhookView.as_view(), name='webhook'),
+    ])),
 ]
