@@ -1,0 +1,62 @@
+{% load i18n %}
+{% load money %}
+{% load static %}
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3>{% trans "Payment pending" %}</h3>
+    </div>
+    <div class="panel-body">
+        {% if payment_info.TransactionStatus == 'Completed' %}
+            <div class="alert alert-success">
+                {% blocktrans trimmed %}
+                Your payment has been completed successfully! Thank you for your order.
+                {% endblocktrans %}
+            </div>
+        {% elif payment_info.TransactionStatus == 'ReceiptNotReceived' %}
+            <div class="alert alert-warning">
+                {% blocktrans trimmed %}
+                We are waiting for confirmation from your bank. This usually takes a few minutes.
+                We will send you an email once your payment is confirmed.
+                {% endblocktrans %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                {% blocktrans trimmed %}
+                Your payment is being processed. We will notify you when it is complete.
+                {% endblocktrans %}
+            </div>
+        {% endif %}
+
+        {% if payment_info.TransactionRefNo %}
+            <dl class="dl-horizontal">
+                <dt>{% trans "POLi Transaction Reference" %}</dt>
+                <dd>{{ payment_info.TransactionRefNo }}</dd>
+
+                {% if payment_info.BankReceipt %}
+                    <dt>{% trans "Bank Receipt" %}</dt>
+                    <dd>{{ payment_info.BankReceipt }}</dd>
+                {% endif %}
+
+                {% if payment_info.FinancialInstitutionName %}
+                    <dt>{% trans "Bank" %}</dt>
+                    <dd>{{ payment_info.FinancialInstitutionName }}</dd>
+                {% endif %}
+
+                {% if payment_info.AmountPaid %}
+                    <dt>{% trans "Amount paid" %}</dt>
+                    <dd>{% money payment_info.AmountPaid currency=event.currency %}</dd>
+                {% endif %}
+            </dl>
+        {% endif %}
+
+        <hr>
+        <p class="text-muted">
+            <small>
+                {% blocktrans trimmed %}
+                If you have questions or need assistance, please contact us with your order code.
+                {% endblocktrans %}
+            </small>
+        </p>
+    </div>
+</div>

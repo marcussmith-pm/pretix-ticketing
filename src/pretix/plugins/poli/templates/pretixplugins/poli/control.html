@@ -1,0 +1,117 @@
+{% load i18n %}
+{% load money %}
+
+<div class="payment-info">
+    {% if payment_info %}
+        <table class="table table-condensed">
+            {% if payment_info.TransactionRefNo %}
+                <tr>
+                    <td><strong>{% trans "POLi Transaction Reference" %}</strong></td>
+                    <td>{{ payment_info.TransactionRefNo }}</td>
+                </tr>
+            {% endif %}
+
+            {% if payment_info.TransactionID %}
+                <tr>
+                    <td><strong>{% trans "Transaction ID" %}</strong></td>
+                    <td><code>{{ payment_info.TransactionID }}</code></td>
+                </tr>
+            {% endif %}
+
+            {% if payment_info.TransactionStatus %}
+                <tr>
+                    <td><strong>{% trans "Status" %}</strong></td>
+                    <td>
+                        <span class="label
+                            {% if payment_info.TransactionStatus == 'Completed' %}label-success
+                            {% elif payment_info.TransactionStatus == 'Failed' %}label-danger
+                            {% elif payment_info.TransactionStatus == 'Timeout' %}label-warning
+                            {% else %}label-info{% endif %}">
+                            {{ payment_info.TransactionStatus }}
+                        </span>
+                    </td>
+                </tr>
+            {% endif %}
+
+            {% if payment_info.PaymentAmount %}
+                <tr>
+                    <td><strong>{% trans "Amount" %}</strong></td>
+                    <td>{% money payment_info.PaymentAmount currency=event.currency %}</td>
+                </tr>
+            {% endif %}
+
+            {% if payment_info.AmountPaid %}
+                <tr>
+                    <td><strong>{% trans "Amount Paid" %}</strong></td>
+                    <td>{% money payment_info.AmountPaid currency=event.currency %}</td>
+                </tr>
+            {% endif %}
+
+            {% if payment_info.FinancialInstitutionName %}
+                <tr>
+                    <td><strong>{% trans "Bank" %}</strong></td>
+                    <td>{{ payment_info.FinancialInstitutionName }}</td>
+                </tr>
+            {% endif %}
+
+            {% if payment_info.BankReceipt %}
+                <tr>
+                    <td><strong>{% trans "Bank Receipt" %}</strong></td>
+                    <td>{{ payment_info.BankReceipt }}</td>
+                </tr>
+            {% endif %}
+
+            {% if payment_info.BankReceiptDateTime %}
+                <tr>
+                    <td><strong>{% trans "Bank Receipt Date/Time" %}</strong></td>
+                    <td>{{ payment_info.BankReceiptDateTime }}</td>
+                </tr>
+            {% endif %}
+
+            {% if payment_info.PayerFirstName or payment_info.PayerFamilyName %}
+                <tr>
+                    <td><strong>{% trans "Payer Name" %}</strong></td>
+                    <td>
+                        {% if payment_info.PayerFirstName %}{{ payment_info.PayerFirstName }} {% endif %}
+                        {% if payment_info.PayerFamilyName %}{{ payment_info.PayerFamilyName }}{% endif %}
+                    </td>
+                </tr>
+            {% endif %}
+
+            {% if payment_info.EstablishedDateTime %}
+                <tr>
+                    <td><strong>{% trans "Transaction Established" %}</strong></td>
+                    <td>{{ payment_info.EstablishedDateTime }}</td>
+                </tr>
+            {% endif %}
+
+            {% if payment_info.EndDateTime %}
+                <tr>
+                    <td><strong>{% trans "Transaction Ended" %}</strong></td>
+                    <td>{{ payment_info.EndDateTime }}</td>
+                </tr>
+            {% endif %}
+
+            {% if payment_info.UserIPAddress %}
+                <tr>
+                    <td><strong>{% trans "User IP" %}</strong></td>
+                    <td>{{ payment_info.UserIPAddress }}</td>
+                </tr>
+            {% endif %}
+
+            {% if payment_info._shredded %}
+                <tr>
+                    <td colspan="2">
+                        <span class="text-muted">
+                            <small>{% trans "Payment details have been redacted due to GDPR/data retention policies." %}</small>
+                        </span>
+                    </td>
+                </tr>
+            {% endif %}
+        </table>
+    {% else %}
+        <p class="text-muted">
+            {% trans "No payment information available." %}
+        </p>
+    {% endif %}
+</div>

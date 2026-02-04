@@ -1,0 +1,32 @@
+{% load i18n %}
+{% load static %}
+<div class="payment-provider-form payment-provider-poli">
+    <div class="poli-payment-info">
+        <p>
+            {% blocktrans trimmed %}
+            You will be redirected to POLi to complete your payment securely from your bank account.
+            {% endblocktrans %}
+        </p>
+        <p class="small text-muted">
+            {% blocktrans trimmed %}
+            POLi is a secure online payment option that allows you to pay directly from your bank account.
+            No credit card required. Supported by major banks in New Zealand and Australia.
+            {% endblocktrans %}
+        </p>
+        <div class="poli-banks-info">
+            <strong>{% trans "Supported banks include:" %}</strong>
+            <ul class="small">
+                {% blocktrans trimmed %}
+                <li>ANZ</li>
+                <li>ASB</li>
+                <li>BNZ</li>
+                <li>Cooperative Bank</li>
+                <li>Heartland Bank</li>
+                <li>Kiwibank</li>
+                <li>TSB</li>
+                <li>Westpac</li>
+                {% endblocktrans %}
+            </ul>
+        </div>
+    </div>
+</div>

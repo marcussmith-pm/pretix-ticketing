@@ -1,0 +1,16 @@
+{% load i18n %}
+<div class="payment-confirmation payment-confirmation-poli">
+    <div class="alert alert-info">
+        <strong>{% trans "Payment method" %}:</strong> {% trans "POLi Pay" %}
+    </div>
+    <p>
+        {% blocktrans trimmed %}
+        After confirming, you will be redirected to POLi to complete your payment.
+        {% endblocktrans %}
+    </p>
+    <p class="small text-muted">
+        {% blocktrans trimmed %}
+        Make sure to complete the payment in your banking app within 15 minutes.
+        {% endblocktrans %}
+    </p>
+</div>
