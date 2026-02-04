@@ -131,6 +131,9 @@ dev = [
 build = "pretix._build:CustomBuild"
 build_ext = "pretix._build:CustomBuildExt"
 
+[project.entry-points."pretix.plugin"]
+poli = "pretix.plugins.poli"
+
 [build-system]
 build-backend = "backend"
 backend-path = ["_build"]
