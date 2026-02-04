@@ -40,6 +40,13 @@ if 'REDIS_URL' in os.environ:
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
             }
         },
+        'redis': {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": os.environ['REDIS_URL'],
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            }
+        },
         'redis_sessions': {
             "BACKEND": "django_redis.cache.RedisCache",
             "LOCATION": os.environ['REDIS_URL'],
