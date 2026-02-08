@@ -25,7 +25,6 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect
-from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -33,6 +32,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 
 from pretix.base.models import Order, OrderPayment
+from pretix.multidomain.urlreverse import eventreverse
 
 logger = logging.getLogger('pretix.plugins.poli')
 
@@ -56,9 +56,7 @@ class PoliReturnView(View):
 
         if not token:
             messages.error(request, _('No payment token received from POLi.'))
-            return redirect(reverse('presale:event.orders', kwargs={
-                'event': request.event.slug,
-                'organizer': request.organizer.slug,
+            return redirect(eventreverse(request.event, 'presale:event.orders', kwargs={
                 'code': order_code
             }) + '?' + urlencode({'hash': hash_value, 'error': 'poli_no_token'}))
 
@@ -78,11 +76,9 @@ class PoliReturnView(View):
                     request,
                     _('We were unable to verify your payment with POLi. Please contact support.')
                 )
-                return redirect(reverse('presale:event.order', kwargs={
-                    'event': request.event.slug,
-                    'organizer': request.organizer.slug,
+                return redirect(eventreverse(request.event, 'presale:event.order', kwargs={
                     'code': order_code,
-                    'hash': hash_value
+                    'secret': hash_value
                 }) + '?opened')
 
             # Process the transaction result
@@ -102,32 +98,21 @@ class PoliReturnView(View):
                     _('Your payment could not be processed. Please try again or choose a different payment method.')
                 )
 
-            return redirect(reverse('presale:event.order', kwargs={
-                'event': request.event.slug,
-                'organizer': request.organizer.slug,
+            return redirect(eventreverse(request.event, 'presale:event.order', kwargs={
                 'code': order_code,
-                'hash': hash_value
+                'secret': hash_value
             }) + '?opened')
 
         except Order.DoesNotExist:
             messages.error(request, _('Order not found.'))
-            return redirect(reverse('presale:event.index', kwargs={
-                'event': request.event.slug,
-                'organizer': request.organizer.slug
-            }))
+            return redirect(eventreverse(request.event, 'presale:event.index'))
         except OrderPayment.DoesNotExist:
             messages.error(request, _('Payment not found.'))
-            return redirect(reverse('presale:event.index', kwargs={
-                'event': request.event.slug,
-                'organizer': request.organizer.slug
-            }))
+            return redirect(eventreverse(request.event, 'presale:event.index'))
         except Exception as e:
             logger.exception(f'Error processing POLi return: {str(e)}')
             messages.error(request, _('An error occurred while processing your payment.'))
-            return redirect(reverse('presale:event.index', kwargs={
-                'event': request.event.slug,
-                'organizer': request.organizer.slug
-            }))
+            return redirect(eventreverse(request.event, 'presale:event.index'))
 
 
 class PoliCancelView(View):
@@ -160,26 +145,18 @@ class PoliCancelView(View):
                     'payment method.')
             )
 
-            return redirect(reverse('presale:event.order', kwargs={
-                'event': request.event.slug,
-                'organizer': request.organizer.slug,
+            return redirect(eventreverse(request.event, 'presale:event.order', kwargs={
                 'code': order_code,
-                'hash': hash_value
+                'secret': hash_value
             }) + '?opened')
 
         except Order.DoesNotExist:
             messages.error(request, _('Order not found.'))
-            return redirect(reverse('presale:event.index', kwargs={
-                'event': request.event.slug,
-                'organizer': request.organizer.slug
-            }))
+            return redirect(eventreverse(request.event, 'presale:event.index'))
         except Exception as e:
             logger.exception(f'Error processing POLi cancel: {str(e)}')
             messages.error(request, _('An error occurred.'))
-            return redirect(reverse('presale:event.index', kwargs={
-                'event': request.event.slug,
-                'organizer': request.organizer.slug
-            }))
+            return redirect(eventreverse(request.event, 'presale:event.index'))
 
 
 @method_decorator(csrf_exempt, name='dispatch')
