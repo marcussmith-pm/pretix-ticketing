@@ -1805,7 +1805,13 @@ class OrderPayment(models.Model):
         This property allows convenient access to the data stored in the ``info``
         attribute by automatically encoding and decoding the content as JSON.
         """
-        return json.loads(self.info) if self.info else {}
+        if self.info:
+            try:
+                return json.loads(self.info)
+            except json.JSONDecodeError:
+                # Return empty dict if JSON is malformed to prevent 500 errors
+                return {}
+        return {}
 
     @info_data.setter
     def info_data(self, d):
@@ -2236,7 +2242,13 @@ class OrderRefund(models.Model):
         This property allows convenient access to the data stored in the ``info``
         attribute by automatically encoding and decoding the content as JSON.
         """
-        return json.loads(self.info) if self.info else {}
+        if self.info:
+            try:
+                return json.loads(self.info)
+            except json.JSONDecodeError:
+                # Return empty dict if JSON is malformed to prevent 500 errors
+                return {}
+        return {}
 
     @info_data.setter
     def info_data(self, d):
