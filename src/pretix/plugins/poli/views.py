@@ -57,7 +57,7 @@ class PoliReturnView(View):
         if not token:
             messages.error(request, _('No payment token received from POLi.'))
             return redirect(eventreverse(request.event, 'presale:event.orders', kwargs={
-                'code': order_code
+                'order': order_code
             }) + '?' + urlencode({'hash': hash_value, 'error': 'poli_no_token'}))
 
         try:
@@ -77,7 +77,7 @@ class PoliReturnView(View):
                     _('We were unable to verify your payment with POLi. Please contact support.')
                 )
                 return redirect(eventreverse(request.event, 'presale:event.order', kwargs={
-                    'code': order_code,
+                    'order': order_code,
                     'secret': hash_value
                 }) + '?opened')
 
@@ -99,7 +99,7 @@ class PoliReturnView(View):
                 )
 
             return redirect(eventreverse(request.event, 'presale:event.order', kwargs={
-                'code': order_code,
+                'order': order_code,
                 'secret': hash_value
             }) + '?opened')
 
@@ -141,12 +141,12 @@ class PoliCancelView(View):
 
             messages.info(
                 request,
-                _('You cancelled the POLi payment. You can try again or choose a different '
+                _('You cancelled POLi payment. You can try again or choose a different '
                     'payment method.')
             )
 
             return redirect(eventreverse(request.event, 'presale:event.order', kwargs={
-                'code': order_code,
+                'order': order_code,
                 'secret': hash_value
             }) + '?opened')
 
