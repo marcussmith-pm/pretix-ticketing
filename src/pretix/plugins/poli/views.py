@@ -23,7 +23,7 @@ from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -33,7 +33,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 
 from pretix.base.models import Order, OrderPayment
-from pretix.base.payment import PaymentException
 
 logger = logging.getLogger('pretix.plugins.poli')
 
@@ -155,7 +154,11 @@ class PoliCancelView(View):
             if payment.state == OrderPayment.PAYMENT_STATE_CREATED:
                 payment.cancel()
 
-            messages.info(request, _('You cancelled the POLi payment. You can try again or choose a different payment method.'))
+            messages.info(
+                request,
+                _('You cancelled the POLi payment. You can try again or choose a different '
+                    'payment method.')
+            )
 
             return redirect(reverse('presale:event.order', kwargs={
                 'event': request.event.slug,
@@ -201,27 +204,15 @@ class PoliWebhookView(View):
         # Get the event from the request - this is a multidomain setup
         # We need to find the order by querying the transaction data
         try:
-            # Import here to avoid circular imports
-            from pretix.plugins.poli.payment import Poli
-
-            # Create a dummy provider instance to get the base URL
-            # We'll need to find the event/order first
             # For now, log the webhook and return success
-
+            # The return view will handle the actual status update
             logger.info(f'POLi webhook received with token: {token}')
-
-            # Query POLi for transaction details
-            # We need to parse the merchant data to find the order
-            # Since we don't have the event context here, we need to handle this differently
 
             # For production use, we should:
             # 1. Query the POLi API to get transaction details
             # 2. Extract MerchantData which contains order_code and payment_id
             # 3. Find the corresponding order and payment
             # 4. Update the payment status
-
-            # For now, acknowledge receipt of the webhook
-            # The return view will handle the actual status update
             return HttpResponse('OK')
 
         except Exception as e:

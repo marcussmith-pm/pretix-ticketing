@@ -20,23 +20,19 @@
 
 import json
 import logging
-import uuid
 from collections import OrderedDict
 from decimal import Decimal
 
 import requests
 from django import forms
 from django.core.exceptions import ValidationError
-from django.http import HttpRequest, HttpResponseBadRequest, JsonResponse
+from django.http import HttpRequest
 from django.template.loader import get_template
-from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from i18nfield.strings import LazyI18nString
 
 from pretix.base.forms import SecretKeySettingsField
-from pretix.base.models import Event, Order, OrderPayment
+from pretix.base.models import Event, OrderPayment
 from pretix.base.payment import BasePaymentProvider, PaymentException
-from pretix.base.services.mail import SendMailException
 from pretix.base.settings import SettingsSandbox
 from pretix.multidomain.urlreverse import build_absolute_uri
 
@@ -85,9 +81,9 @@ class Poli(BasePaymentProvider):
         fields = OrderedDict([
             ('authentication_code',
              SecretKeySettingsField(
-                 label=_('Authentication Code'),
-                 help_text=_('Your POLi authentication code. This can be found in your POLi merchant account settings.'),
-                 required=True,
+                  label=_('Authentication Code'),
+                  help_text=_('Your POLi authentication code found in your POLi merchant account settings.'),
+                  required=True,
              )),
             ('merchant_code',
              forms.CharField(
@@ -158,8 +154,11 @@ class Poli(BasePaymentProvider):
     def payment_is_valid_session(self, request):
         """
         Check if the payment session is valid.
+
+        We don't require a token to be present yet, as it's created during execute_payment.
+        Just return True to allow the payment to proceed.
         """
-        return request.session.get('payment_poli_token', '') != ''
+        return True
 
     def payment_form_render(self, request) -> str:
         """
@@ -175,104 +174,13 @@ class Poli(BasePaymentProvider):
 
     def checkout_prepare(self, request, total):
         """
-        Initiate a POLi transaction and return the redirect URL.
+        Validate and prepare for POLi payment.
 
-        This is called during checkout to start the payment flow.
-        The OrderPayment doesn't exist yet, so we use the session.
+        This is called during checkout when user selects POLi as payment method.
+        We don't initiate the transaction yet - that happens in payment_prepare.
         """
         logger.info(f'[POLi DEBUG] checkout_prepare called with total: {total}, currency: {self.event.currency}')
-
-        # Generate a temporary reference for the transaction
-        # We'll update this with the actual order code when the payment is created
-        temp_ref = f"TEMP-{uuid.uuid4().hex[:12].upper()}"
-        logger.info(f'[POLi DEBUG] Generated temp_ref: {temp_ref}')
-
-        # Extract the actual amount from the total dictionary
-        if isinstance(total, dict):
-            amount = str(total.get('total', Decimal('0.00')))
-            logger.info(f'[POLi DEBUG] Extracted amount from dict: {amount}')
-        else:
-            amount = str(total)
-            logger.info(f'[POLi DEBUG] Amount (direct): {amount}')
-
-        currency_code = self.event.currency
-        merchant_homepage_url = build_absolute_uri(self.event, 'presale:event.index')
-        # We'll use the return URL that works without order/payment context
-        # The view will handle finding the correct order
-        success_url = build_absolute_uri(self.event, 'presale:event.index')
-        failure_url = build_absolute_uri(self.event, 'presale:event.index')
-        cancellation_url = build_absolute_uri(self.event, 'presale:event.index')
-        notification_url = build_absolute_uri(self.event, 'plugins:poli:webhook')
-
-        timeout = self.settings.get('timeout', 900)
-        logger.info(f'[POLi DEBUG] Timeout: {timeout}, Endpoint: {self.settings.get("endpoint", "production")}')
-
-        payload = {
-            'Amount': amount,
-            'CurrencyCode': currency_code,
-            'MerchantReference': temp_ref,
-            'MerchantHomepageURL': merchant_homepage_url,
-            'SuccessURL': success_url,
-            'FailureURL': failure_url,
-            'CancellationURL': cancellation_url,
-            'NotificationURL': notification_url,
-            'Timeout': timeout,
-            'MerchantData': json.dumps({
-                'temp_ref': temp_ref,
-            }),
-        }
-
-        authentication_code = self.settings.get('authentication_code')
-        merchant_code = self.settings.get('merchant_code')
-
-        logger.info(f'[POLi DEBUG] Merchant code: {merchant_code}, Auth code set: {bool(authentication_code)}')
-
-        # Create Basic Auth header
-        auth_string = f"{merchant_code}:{authentication_code}"
-        auth_header = f"Basic {__import__('base64').b64encode(auth_string.encode()).decode()}"
-
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': auth_header,
-        }
-
-        base_url = self.get_base_url()
-        api_url = f"{base_url}/api/v2/Transaction/Initiate"
-
-        logger.info(f'[POLi DEBUG] Calling POLi API: {api_url}')
-        logger.info(f'[POLi DEBUG] Payload: {json.dumps(payload, indent=2)}')
-
-        try:
-            response = requests.post(
-                api_url,
-                json=payload,
-                headers=headers,
-                timeout=30
-            )
-            logger.info(f'[POLi DEBUG] Response status: {response.status_code}')
-            logger.info(f'[POLi DEBUG] Response body: {response.text[:500]}')
-
-            response.raise_for_status()
-            data = response.json()
-
-            if data.get('Success'):
-                # Store transaction details for later use
-                request.session['payment_poli_token'] = data.get('TransactionRefNo')
-                request.session['payment_poli_navigate_url'] = data.get('NavigateURL')
-                request.session['payment_poli_temp_ref'] = temp_ref
-                logger.info(f'[POLi DEBUG] Transaction initiated successfully, NavigateURL: {data.get("NavigateURL")}')
-                return data.get('NavigateURL')
-            else:
-                error_code = data.get('ErrorCode', 'Unknown')
-                error_message = data.get('ErrorMessage', 'Unknown error')
-                logger.error(f'[POLi DEBUG] InitiateTransaction failed: {error_code} - {error_message}')
-                logger.error(f'[POLi DEBUG] Full response: {data}')
-                return None
-
-        except requests.RequestException as e:
-            logger.error(f'[POLi DEBUG] API request failed: {str(e)}')
-            logger.exception(f'[POLi DEBUG] Full exception traceback:')
-            return None
+        return True
 
     def checkout_confirm_render(self, request):
         """
@@ -322,58 +230,11 @@ class Poli(BasePaymentProvider):
 
     def execute_payment(self, request: HttpRequest, payment: OrderPayment):
         """
-        Execute the payment by verifying it with POLi.
+        Execute the payment by initiating a POLi transaction.
 
-        This is called when the user returns from POLi or when the payment
-        needs to be confirmed. We query POLi for the transaction status
-        and update the payment accordingly.
+        This is called when the user confirms the order. We initiate
+        the POLi transaction and return the redirect URL.
         """
-        token = request.session.get('payment_poli_token')
-        if not token:
-            raise PaymentException(
-                _('No POLi transaction token found. Please try again.')
-            )
-
-        # Query POLi for transaction status
-        transaction_data = self.get_transaction_status(token)
-
-        if not transaction_data:
-            raise PaymentException(
-                _('We were unable to verify your payment with POLi. Please contact support.')
-            )
-
-        # Store the transaction data
-        payment.info = json.dumps(transaction_data)
-        payment.save(update_fields=['info'])
-
-        # Process the transaction result
-        success = self.process_transaction_result(payment, transaction_data)
-
-        if not success:
-            transaction_status = transaction_data.get('TransactionStatusCode', 'Unknown')
-            if transaction_status == 'Failed':
-                raise PaymentException(
-                    _('Your payment failed. Please try again or choose a different payment method.')
-                )
-            elif transaction_status == 'Timeout':
-                raise PaymentException(
-                    _('Your payment timed out. Please try again.')
-                )
-            else:
-                raise PaymentException(
-                    _('We were unable to process your payment. Please try again or contact support.')
-                )
-
-        return None
-
-    def payment_prepare(self, request, payment: OrderPayment):
-        """
-        Initiate a new POLi payment for an existing order.
-
-        This is called when a user wants to pay for an existing order
-        (e.g., from the order details page).
-        """
-        # For existing orders, we can use the actual order code
         amount = str(payment.amount)
         currency_code = self.event.currency
         merchant_reference = payment.order.code
@@ -454,6 +315,8 @@ class Poli(BasePaymentProvider):
                 })
                 payment.save(update_fields=['info'])
 
+                logger.info(f'POLi transaction initiated for payment {payment.pk}: {data.get("TransactionRefNo")}')
+
                 return data.get('NavigateURL')
             else:
                 error_code = data.get('ErrorCode', 'Unknown')
@@ -484,6 +347,15 @@ class Poli(BasePaymentProvider):
             raise PaymentException(
                 _('We were unable to reach POLi. Please try again or contact support.')
             )
+
+    def payment_prepare(self, request, payment: OrderPayment):
+        """
+        Initiate a POLi payment for an existing order.
+
+        This is called when a user retries payment or changes payment method.
+        We initiate the POLi transaction and return the redirect URL.
+        """
+        return self.execute_payment(request, payment)
 
     def process_transaction_result(self, payment: OrderPayment, transaction_data):
         """
