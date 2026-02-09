@@ -18,8 +18,14 @@
 # You should have received a copy of the GNU Affero General Public License along with this program.  If not, see
 # <https://www.gnu.org/licenses/>.
 
+import logging
+
+from datetime import timedelta
 from django.dispatch import receiver
-from pretix.base.signals import register_payment_providers, email_filter
+from django.utils.timezone import now
+from pretix.base.signals import register_payment_providers, email_filter, order_placed
+
+logger = logging.getLogger(__name__)
 
 
 @receiver(register_payment_providers, dispatch_uid="payment_poli")
@@ -34,11 +40,10 @@ def register_payment_provider(sender, **kwargs):
 @receiver(email_filter, dispatch_uid="payment_poli_email_filter")
 def filter_order_placed_email(sender, message, order, **kwargs):
     """
-    Suppress the 'order placed' email for POLi payments.
+    Suppress the immediate 'order placed' email for POLi payments.
 
-    This prevents the immediate order confirmation email from being sent
-    while the user is still going through the POLi payment flow. The user
-    will receive the 'order paid' email once payment is completed.
+    The email will be sent later (after 2 hours) if the order remains unpaid.
+    If payment is completed within 2 hours, the email is never sent.
     """
     if not order:
         return message
@@ -53,8 +58,34 @@ def filter_order_placed_email(sender, message, order, **kwargs):
         # The 'order paid' email subject is "Payment received for your order: {code}"
         # We only suppress the 'order placed' email to avoid confusing UX during payment flow
         if 'your order:' in subject and 'payment received' not in subject:
-            # For POLi, we suppress the immediate 'order placed' email
-            # The user will get an email after payment is completed
+            # Suppress the immediate email - it will be sent later if needed
             return None
 
     return message
+
+
+@receiver(order_placed, dispatch_uid="payment_poli_schedule_reminder")
+def schedule_payment_reminder(sender, order, **kwargs):
+    """
+    Schedule a reminder email to be sent 2 hours after order placement.
+
+    The task will check if the order is still unpaid and send a reminder
+    if payment has not been completed.
+    """
+    # Check if this order uses POLi payment
+    if not order.payments.filter(provider='poli').exists():
+        return
+
+    # Schedule the reminder task to run in 2 hours
+    from pretix.plugins.poli.tasks import send_pending_payment_reminder
+
+    try:
+        eta = now() + timedelta(hours=2)
+        send_pending_payment_reminder.apply_async(
+            args=[order.code, order.event.pk],
+            eta=eta,
+        )
+        logger.info(f"Scheduled payment reminder for order {order.code} in 2 hours")
+    except Exception as e:
+        # If scheduling fails, log it but don't break the order flow
+        logger.exception(f"Failed to schedule payment reminder for order {order.code}: {e}")
